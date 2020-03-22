@@ -1,6 +1,7 @@
 use crate::error::AppError;
 use crate::sync_service::Broadcaster;
 use crate::users_notification::{notify_creation, notify_get_closer, notify_your_turn};
+use actix_session::Session;
 use actix_web::{
     get, patch, post, web,
     web::{Path, ServiceConfig},
@@ -54,6 +55,7 @@ async fn get_existing_client_name(
 pub struct TicketForm {
     name: String,
     phone: String,
+    doctor_id: Option<i32>,
 }
 #[post("/api/v2/ticket")]
 async fn submit_ticket_form(
@@ -61,11 +63,18 @@ async fn submit_ticket_form(
     ticket_form: web::Json<TicketForm>,
     db_pool: web::Data<Pool>,
     location_broadcaster: web::Data<Mutex<Broadcaster>>,
+    session: Session,
 ) -> Result<HttpResponse, AppError> {
     let ticket_form = ticket_form.into_inner();
     let db_conn = db_pool.get().await?;
-    let location_id: i32 = 0;
-    let doctor_id: i32 = 0;
+    let location_id: i32 = match session.get::<i32>("azap-location")? {
+        None => return Err(AppError::NotFound),
+        Some(ok) => ok,
+    };
+    let doctor_id = match session.get::<i32>("azap-doctor")? {
+        Some(ok) => Some(ok),
+        None => ticket_form.doctor_id,
+    };
     let name = ticket_form.name;
     let phone = ticket_form.phone;
     let creation_time = Local::now();
@@ -137,8 +146,8 @@ async fn update_ticket_status(
     let ticket = Ticket::from(&row);
 
     let first_3: Vec<Ticket> = db_conn.query(
-        "SELECT * from tickets WHERE docotor_id=$1 and location_id=$2 and done_time IS NULL and canceled_time IS NULL ORDER BY creation_time ASC LIMIT 3",
-        &[&ticket.docotor_id, &ticket.location_id],
+        "SELECT * from tickets WHERE doctor_id=$1 and location_id=$2 and done_time IS NULL and canceled_time IS NULL ORDER BY creation_time ASC LIMIT 3",
+        &[&ticket.doctor_id, &ticket.location_id],
     ).await?
     .iter()
     .map(|row| row.into()).collect();

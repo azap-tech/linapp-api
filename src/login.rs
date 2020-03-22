@@ -25,12 +25,15 @@ pub async fn create_user(db_conn: &Client, password: &str) -> Result<i32, AppErr
 
 #[get("/api/v2/me")]
 async fn get_me(session: Session) -> Result<HttpResponse, AppError> {
-    let sess: Option<i32> = session.get("azap")?;
-    if sess.is_some() {
-        Ok(HttpResponse::Ok().json(json!({ "status": "sucess","user":{"id": sess} })))
+    let id: Option<i32> = session.get("azap")?;
+    let location: Option<i32> = session.get("azap-location")?;
+    let doctor: Option<i32> = session.get("azap-doctor")?;
+    if id.is_some() {
+        Ok(HttpResponse::Ok()
+            .json(json!({ "status": "sucess", "id": id,"location":location, "doctor":doctor })))
     } else {
         Ok(HttpResponse::Unauthorized()
-            .json(json!({ "status": "error", "error":"invalide session" })))
+            .json(json!({ "status": "error", "error":"invalid session" })))
     }
 }
 
@@ -57,9 +60,26 @@ async fn login(
     let hsecret: String = row.get("hsecret");
     if scrypt_check(&user.secret, &hsecret).is_ok() {
         session.set("azap", id)?;
+        //check if is location
+        let res = db_conn
+            .query("SELECT id from locations where id=$1", &[&id])
+            .await?;
+        if res.len() > 0 {
+            let id: i32 = res[0].get("id");
+            session.set("azap-location", id)?;
+        }
+        // check if is doctor
+        let res = db_conn
+            .query("SELECT id from doctors where id=$1", &[&id])
+            .await?;
+        if res.len() > 0 {
+            let id: i32 = res[0].get("id");
+            session.set("azap-doctor", id)?;
+        }
         session.renew();
         return Ok(HttpResponse::Ok().json(json!({"status": "sucess","id": id})));
     }
+
     Ok(HttpResponse::Ok().json(json!({"error": "error"})))
 }
 

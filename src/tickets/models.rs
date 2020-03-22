@@ -10,7 +10,7 @@ pub struct Ticket {
     pub location_id: i32,
     pub name: String,
     pub phone: Option<String>,
-    pub docotor_id: Option<i32>,
+    pub doctor_id: Option<i32>,
     pub creation_time: chrono::DateTime<Local>,
     pub started_time: Option<chrono::DateTime<Local>>,
     pub done_time: Option<chrono::DateTime<Local>>,
@@ -21,7 +21,7 @@ impl From<&Row> for Ticket {
     fn from(row: &Row) -> Self {
         let id = row.get("id");
         let location_id = row.get("location_id");
-        let docotor_id = row.get("docotor_id");
+        let doctor_id = row.get("doctor_id");
         let name = row.get("name");
         let phone = row.get("phone");
         let creation_time = row.get("creation_time");
@@ -31,7 +31,7 @@ impl From<&Row> for Ticket {
         Ticket {
             id,
             location_id,
-            docotor_id,
+            doctor_id,
             name,
             phone,
             creation_time,
