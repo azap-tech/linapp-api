@@ -42,9 +42,9 @@ def get_location():
     return res
 
 
-def take_ticket(name, phone, docotorId=None):
+def take_ticket(name, phone, sex, pathology, doctorId=None, locationId=None):
     res = requests.post(
-        f"{api}/ticket", json={"name": name, "phone": phone, "doctorId": None}).json()
+        f"{api}/ticket", json={"name": name, "phone": phone, "doctorId": doctorId, "pathology": pathology, "sex": sex, "locationId": locationId}).json()
     return res
 
 
@@ -77,8 +77,8 @@ def logout():
 
 
 def set_doctor(patient_id, doctor_id):
-    res = requests.post(f"{api}/ticket/{patient_id}/doctor",
-                        json={"doctor_id": doctor_id}).json()
+    res = requests.patch(f"{api}/ticket/{patient_id}/doctor",
+                         json={"doctor_id": doctor_id}).json()
     return res["status"] == 200
 
 

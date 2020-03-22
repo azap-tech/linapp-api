@@ -15,8 +15,8 @@ pub struct Ticket {
     pub started_time: Option<chrono::DateTime<Local>>,
     pub done_time: Option<chrono::DateTime<Local>>,
     pub canceled_time: Option<chrono::DateTime<Local>>,
-    // pub sex : String
-    // pub patho : String
+    pub sex: String,
+    pub pathology: String,
 }
 
 impl From<&Row> for Ticket {
@@ -30,6 +30,8 @@ impl From<&Row> for Ticket {
         let started_time = row.get("started_time");
         let done_time = row.get("done_time");
         let canceled_time = row.get("canceled_time");
+        let sex = row.get("sex");
+        let pathology = row.get("pathology");
         Ticket {
             id,
             location_id,
@@ -40,6 +42,8 @@ impl From<&Row> for Ticket {
             started_time,
             done_time,
             canceled_time,
+            sex,
+            pathology,
         }
     }
 }

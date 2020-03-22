@@ -40,7 +40,10 @@ async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError>
 pub struct TicketForm {
     name: String,
     phone: String,
+    sex: String,
+    pathology: String,
     doctor_id: Option<i32>,
+    location_id: Option<i32>,
 }
 #[post("/api/v2/ticket")]
 async fn submit_ticket_form(
@@ -53,7 +56,13 @@ async fn submit_ticket_form(
     let ticket_form = ticket_form.into_inner();
     let db_conn = db_pool.get().await?;
     let location_id: i32 = match session.get::<i32>("azap-location")? {
-        None => return Err(AppError::NotFound),
+        None => {
+            if ticket_form.location_id.is_none() {
+                return Err(AppError::NotFound);
+            } else {
+                ticket_form.location_id.unwrap()
+            }
+        }
         Some(ok) => ok,
     };
     let doctor_id = match session.get::<i32>("azap-doctor")? {
@@ -63,6 +72,8 @@ async fn submit_ticket_form(
     let name = ticket_form.name;
     let phone = ticket_form.phone;
     let creation_time = Local::now();
+    let sex = ticket_form.sex;
+    let pathology = ticket_form.pathology;
 
     // if doctor has no tickets
     let docotor_tickets_rows = db_conn.query("Select * from tickets WHERE location_id=$2 and doctor_id=$1 and done_time is NULL and canceled_time is NULL", &[&doctor_id, &location_id]).await?;
@@ -73,8 +84,8 @@ async fn submit_ticket_form(
     };
 
     let query = r#"INSERT INTO tickets
-        (location_id, doctor_id, creation_time, started_time, name, phone)
-        VALUES ($1,$2,$3,$4,$5,$6)
+        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
         RETURNING *"#;
     let param: &[&(dyn ToSql + Sync)] = &[
         &location_id,
@@ -83,6 +94,8 @@ async fn submit_ticket_form(
         &started_time,
         &name,
         &phone,
+        &sex,
+        &pathology,
     ];
     let ticket_row = db_conn.query_one(query, param).await?;
     let ticket: Ticket = Ticket::from(&ticket_row);

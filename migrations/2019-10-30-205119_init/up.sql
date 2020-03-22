@@ -25,6 +25,8 @@ CREATE TABLE tickets (
     doctor_id INTEGER REFERENCES doctors(id),
     name TEXT NOT NULL,
     phone TEXT,
+    sex TEXT,
+    pathology TEXT,
     creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
     started_time TIMESTAMP WITH TIME ZONE NULL,
     done_time TIMESTAMP WITH TIME ZONE NULL,
