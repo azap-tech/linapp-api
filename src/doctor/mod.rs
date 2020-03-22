@@ -26,7 +26,7 @@ pub fn config(cfg: &mut ServiceConfig) {
 pub struct DoctorForm {
     name: String,
     location_id: i32,
-    phone: Option<String>,
+    phone: String,
 }
 
 #[post("/api/v2/doctor")]
