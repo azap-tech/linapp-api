@@ -14,7 +14,7 @@ pub enum DoctorStatus {
 #[serde(rename_all(serialize = "camelCase"))]
 pub struct Doctor {
     pub id: i32,
-    pub store_id: i32,
+    pub location_id: i32,
     pub phone: String,
     pub name: String,
     pub status: DoctorStatus,
@@ -23,14 +23,14 @@ pub struct Doctor {
 impl From<&Row> for Doctor {
     fn from(row: &Row) -> Self {
         let id: i32 = row.get("id");
-        let store_id: i32 = row.get("store_id");
+        let location_id: i32 = row.get("location_id");
         let phone: String = row.get("phone");
         let name: String = row.get("name");
         let status: DoctorStatus = row.get("status");
         let avatar: Option<String> = row.get("avatar");
         Doctor {
             id,
-            store_id,
+            location_id,
             phone,
             name,
             status,
