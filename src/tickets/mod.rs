@@ -24,6 +24,20 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(submit_ticket_form_no_login);
 }
 
+#[get("/api/v2/ticket/{id}")]
+async fn get_ticket_id(
+    db_pool: web::Data<Pool>,
+    path: web::Path<i32>,
+) -> Result<HttpResponse, AppError> {
+    let id = path.into_inner();
+    let db_conn = db_pool.get().await?;
+    let row = db_conn
+        .query_one("SELECT * from tickets where id=$1", &[&id])
+        .await?;
+    let ticket = Ticket::from(&row);
+    Ok(HttpResponse::Ok().json(ticket))
+}
+
 #[get("/api/v2/ticket")]
 async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
     let db_conn = db_pool.get().await?;
