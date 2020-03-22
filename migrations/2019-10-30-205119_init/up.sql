@@ -26,6 +26,7 @@ CREATE TABLE tickets (
     name TEXT NOT NULL,
     phone TEXT,
     sex TEXT,
+    age INTEGER,
     pathology TEXT,
     creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
     started_time TIMESTAMP WITH TIME ZONE NULL,

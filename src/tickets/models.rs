@@ -17,6 +17,7 @@ pub struct Ticket {
     pub canceled_time: Option<chrono::DateTime<Local>>,
     pub sex: String,
     pub pathology: String,
+    pub age: i32,
 }
 
 impl From<&Row> for Ticket {
@@ -32,6 +33,7 @@ impl From<&Row> for Ticket {
         let canceled_time = row.get("canceled_time");
         let sex = row.get("sex");
         let pathology = row.get("pathology");
+        let age = row.get("age");
         Ticket {
             id,
             location_id,
@@ -44,6 +46,7 @@ impl From<&Row> for Ticket {
             canceled_time,
             sex,
             pathology,
+            age,
         }
     }
 }

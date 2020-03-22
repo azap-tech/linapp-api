@@ -1,6 +1,7 @@
 use crate::error::AppError;
 use crate::login::create_user;
 use crate::sync_service::Broadcaster;
+use crate::tickets::Ticket;
 use actix_session::UserSession;
 use actix_web::dev::Payload;
 use actix_web::error::ErrorBadRequest;
@@ -26,14 +27,31 @@ pub fn config(cfg: &mut ServiceConfig) {
 pub async fn get_locations(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
     let db_conn = db_pool.get().await?;
     let sql = "SELECT id,name from locations";
-    let res: Vec<Value> = db_conn
+    let locations: Vec<(i32, String)> = db_conn
         .query(sql, &[])
         .await?
         .iter()
         .map(|row| {
             let id: i32 = row.get("id");
             let name: String = row.get("name");
-            json!({"id":id, "name":name})
+            (id, name)
+        })
+        .collect();
+    let tickets: Vec<Ticket> = db_conn
+        .query("SELECT * from tickets", &[])
+        .await?
+        .iter()
+        .map(|row| row.into())
+        .collect();
+
+    let res: Vec<Value> = locations
+        .iter()
+        .map(|l| {
+            let id = l.0;
+            let name = l.1.clone();
+            let waiting_time: Vec<&Ticket> =
+                tickets.iter().filter(|t| t.location_id == id).collect();
+            json!({"id":id, "name":name, "waitingTime": waiting_time.len() * 30})
         })
         .collect();
     let resp = json!({"status":"ok", "locations":res});

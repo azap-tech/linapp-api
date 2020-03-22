@@ -22,6 +22,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(submit_ticket_form);
     cfg.service(update_ticket_status);
     cfg.service(submit_ticket_form_no_login);
+}
 
 #[get("/api/v2/ticket")]
 async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
@@ -42,6 +43,7 @@ pub struct TicketForm {
     phone: String,
     sex: String,
     pathology: String,
+    age: i32,
     doctor_id: Option<i32>,
     location_id: Option<i32>,
 }
@@ -74,6 +76,7 @@ async fn submit_ticket_form(
     let creation_time = Local::now();
     let sex = ticket_form.sex;
     let pathology = ticket_form.pathology;
+    let age = ticket_form.age;
 
     // if doctor has no tickets
     let docotor_tickets_rows = db_conn.query("Select * from tickets WHERE location_id=$2 and doctor_id=$1 and done_time is NULL and canceled_time is NULL", &[&doctor_id, &location_id]).await?;
@@ -84,8 +87,8 @@ async fn submit_ticket_form(
     };
 
     let query = r#"INSERT INTO tickets
-        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology,age)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         RETURNING *"#;
     let param: &[&(dyn ToSql + Sync)] = &[
         &location_id,
@@ -96,6 +99,7 @@ async fn submit_ticket_form(
         &phone,
         &sex,
         &pathology,
+        &age,
     ];
     let ticket_row = db_conn.query_one(query, param).await?;
     let ticket: Ticket = Ticket::from(&ticket_row);
@@ -126,7 +130,7 @@ async fn submit_ticket_form_no_login(
 ) -> Result<HttpResponse, AppError> {
     let ticket_form = ticket_form.into_inner();
     let db_conn = db_pool.get().await?;
-    if ticket_form.location_id.is_none() {
+    let location_id = if ticket_form.location_id.is_none() {
         return Err(AppError::NotFound);
     } else {
         ticket_form.location_id.unwrap()
@@ -138,6 +142,7 @@ async fn submit_ticket_form_no_login(
     let creation_time = Local::now();
     let sex = ticket_form.sex;
     let pathology = ticket_form.pathology;
+    let age = ticket_form.age;
 
     // if doctor has no tickets
     let docotor_tickets_rows = db_conn.query("Select * from tickets WHERE location_id=$2 and doctor_id=$1 and done_time is NULL and canceled_time is NULL", &[&doctor_id, &location_id]).await?;
@@ -148,8 +153,8 @@ async fn submit_ticket_form_no_login(
     };
 
     let query = r#"INSERT INTO tickets
-        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology,age)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         RETURNING *"#;
     let param: &[&(dyn ToSql + Sync)] = &[
         &location_id,
@@ -160,6 +165,7 @@ async fn submit_ticket_form_no_login(
         &phone,
         &sex,
         &pathology,
+        &age,
     ];
     let ticket_row = db_conn.query_one(query, param).await?;
     let ticket: Ticket = Ticket::from(&ticket_row);
