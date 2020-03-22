@@ -42,9 +42,9 @@ def get_location():
     return res
 
 
-def take_ticket(name, phone, sex, pathology, doctorId=None, locationId=None):
+def take_ticket(name, phone, sex, pathology, age, doctorId=None, locationId=None):
     res = requests.post(
-        f"{api}/ticket", json={"name": name, "phone": phone, "doctorId": doctorId, "pathology": pathology, "sex": sex, "locationId": locationId}).json()
+        f"{api}/ticket", json={"name": name, "phone": phone, "doctorId": doctorId, "pathology": pathology, "sex": sex, "age": age, "locationId": locationId}).json()
     return res
 
 

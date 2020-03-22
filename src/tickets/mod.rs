@@ -22,6 +22,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(submit_ticket_form);
     cfg.service(update_ticket_status);
     cfg.service(submit_ticket_form_no_login);
+    cfg.service(get_ticket_id);
 }
 
 #[get("/api/v2/ticket/{id}")]
