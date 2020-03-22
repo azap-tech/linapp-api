@@ -13,7 +13,7 @@ use deadpool_postgres::Pool;
 use futures::future::{self, Ready};
 use rand::{thread_rng, Rng};
 use serde::Deserialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::sync::Mutex;
 
 pub fn config(cfg: &mut ServiceConfig) {
@@ -26,11 +26,15 @@ pub fn config(cfg: &mut ServiceConfig) {
 pub async fn get_locations(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
     let db_conn = db_pool.get().await?;
     let sql = "SELECT id,name from locations";
-    let res: Vec<(i32, String)> = db_conn
+    let res: Vec<Value> = db_conn
         .query(sql, &[])
         .await?
         .iter()
-        .map(|row| (row.get("id"), row.get("name")))
+        .map(|row| {
+            let id: i32 = row.get("id");
+            let name: String = row.get("name");
+            json!({"id":id, "name":name})
+        })
         .collect();
     let resp = json!({"status":"ok", "locations":res});
     Ok(HttpResponse::Ok().json(resp))
