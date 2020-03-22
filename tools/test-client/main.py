@@ -10,7 +10,7 @@ from sseclient import SSEClient
 
 HOST = "localhost"
 PORT = 8080
-api = f"http://{HOST}:{PORT}/api/v1"
+api = f"http://{HOST}:{PORT}/api/v2"
 # keep session on every request
 requests = requests.Session()
 
@@ -32,12 +32,14 @@ def connect_sse(token):
 
 
 def create_location(name):
-    res = requests.post(f"{api}/location", data={name: name}).json()
-    return res["id"], res["token"]
+    res = requests.post(f"{api}/location",
+                        json={"name": name}).json()
+    return res["id"], res["pincode"]
 
 
 def take_ticket(name, phone):
-    res = requests.post(f"{api}/ticket/", data={name: name}).json()
+    res = requests.post(
+        f"{api}/ticket/", json={"name": name, "phone": phone}).json()
     return res["id"]
 
 
@@ -47,22 +49,22 @@ def get_tickets():
 
 def create_doctor(name, phone, location_code):
     phone = input("phone-number:")
-    payload = {name: name, phone: phone, location_code: location_code}
-    res = requests.post(f"{api}/doctor/", data=payload).json()
+    payload = {"name": name, "phone": phone, "location_code": location_code}
+    res = requests.post(f"{api}/doctor/", json=payload).json()
     pincode = input("pincode:")
     login(phone, pincode)
     return res["id"]
 
 
 def login(phone, pincode):
-    res = requests.post(f"{api}/login/pincode",
-                        data={phone: phone, pincode: pincode}).json()
+    res = requests.post(f"{api}/login",
+                        json={"phone": phone, "secret": pincode}).json()
     return res["id"]
 
 
 def location_login(token):
-    res = requests.post(f"{api}/login/token",
-                        data={token: token}).json()
+    res = requests.post(f"{api}/login",
+                        json={"secret": token}).json()
     return res["id"]
 
 
@@ -78,23 +80,24 @@ def logout():
 
 def set_doctor(patient_id, doctor_id):
     res = requests.post(f"{api}/ticket/{patient_id}/doctor",
-                        data={doctor_id: doctor_id}).json()
+                        json={"doctor_id": doctor_id}).json()
     return res["status"] == 200
 
 
 def doctor_next(patient_id):
-    payload = {patient_id: patient_id}
-    res = requests.post(f"{api}/doctor/next", data=payload).json()
+    payload = {"patient_id": patient_id}
+    res = requests.post(f"{api}/doctor/next", json=payload).json()
     return res["status"] == 200
 
 
 if __name__ == "__main__":
     # create store
     location_id, token = create_location("test-location")
+    location_login(token)
+
     me = get_me()
     connect_sse(me["event_token"])
 
-    location_login(token)
     p1 = take_ticket("patien-1", "0624242401")
     p2 = take_ticket("patien-2", "0624242401")
     p3 = take_ticket("patien-3", "0624242401")
