@@ -56,10 +56,9 @@ def create_doctor(name, phone, location_code):
     return res["id"]
 
 
-def login(phone, pincode):
+def login(id, secret):
     res = requests.post(f"{api}/login",
-                        json={"phone": phone, "secret": pincode})
-    print(res.text)
+                        json={"id": id, "secret": secret}).json()
     return res["id"]
 
 
@@ -95,10 +94,10 @@ def doctor_next(patient_id):
 if __name__ == "__main__":
     # create store
     location_id, token = create_location("test-location")
-    location_login(token)
+    login(location_id, token)
 
     me = get_me()
-    connect_sse(me["event_token"])
+    #connect_sse(me["event_token"])
 
     p1 = take_ticket("patien-1", "0624242401")
     p2 = take_ticket("patien-2", "0624242401")
@@ -108,7 +107,7 @@ if __name__ == "__main__":
 
     doctor_id, pin = create_doctor("test-docotor", "0642424242", location_id)
     set_doctor(p1, doctor_id)
-    token = login("0642424242", pin)
+    token = login(doctor_id, pin)
     set_doctor(p2, doctor_id)
     p4 = take_ticket("patien-4", "0624242401")
     p5 = take_ticket("patien-5", "0624242402")

@@ -25,10 +25,8 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[serde(rename_all(deserialize = "camelCase"))]
 pub struct DoctorForm {
     name: String,
-    avatar: String,
     location_id: i32,
     phone: Option<String>,
-    is_manager: bool,
 }
 
 #[post("/api/v2/doctor")]
@@ -58,9 +56,7 @@ pub async fn create_doctor(
                 &user_id,
                 &doctor_form.name,
                 &doctor_form.location_id,
-                &doctor_form.avatar,
                 &doctor_form.phone,
-                &doctor_form.is_manager
             ],
         )
         .await?;

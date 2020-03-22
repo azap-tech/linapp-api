@@ -37,26 +37,30 @@ async fn get_me(session: Session) -> Result<HttpResponse, AppError> {
 #[derive(Deserialize)]
 struct Identity {
     secret: String,
-    id: String,
+    id: i32,
 }
 
-#[post("/api/v2/token")]
+#[post("/api/v2/login")]
 async fn login(
     user: web::Json<Identity>,
     db_pool: web::Data<Pool>,
     session: Session,
 ) -> Result<HttpResponse, AppError> {
     let user = user.into_inner();
+    let id = user.id;
 
     let db_conn = db_pool.get().await?;
     let row = db_conn
         .query_one("SELECT (id,hsecret) from users where id=$1", &[&id])
         .await?;
     let id: i32 = row.get("id");
-
-    session.set("azap", id)?;
-    session.renew();
-    Ok(HttpResponse::Ok().json(json!({"status": "sucess","user":{"id": id} })))
+    let hsecret: String = row.get("hsecret");
+    if scrypt_check(&user.secret, &hsecret).is_ok() {
+        session.set("azap", id)?;
+        session.renew();
+        return Ok(HttpResponse::Ok().json(json!({"status": "sucess","user":{"id": id} })));
+    }
+    return Ok(HttpResponse::Ok().json(json!({"error": "erro"})));
 }
 
 #[post("/api/v2/logout")]

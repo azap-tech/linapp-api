@@ -17,8 +17,23 @@ use serde_json::json;
 use std::sync::Mutex;
 
 pub fn config(cfg: &mut ServiceConfig) {
+    cfg.service(get_locations);
     cfg.service(create_location);
     cfg.service(get_location_events);
+}
+
+#[get("/api/v2/location")]
+pub async fn get_locations(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
+    let db_conn = db_pool.get().await?;
+    let sql = "SELECT (id,name) from locations";
+    let res: Vec<(i32, String)> = db_conn
+        .query(sql, &[])
+        .await?
+        .iter()
+        .map(|row| (row.get("id"), row.get("name")))
+        .collect();
+    let resp = json!({"status":"ok", "locations":res});
+    Ok(HttpResponse::Ok().json(resp))
 }
 
 #[derive(Deserialize)]
@@ -41,7 +56,7 @@ pub async fn create_location(
     let row = db_conn
         .query_one(sql, &[&user_id, &location_form.name])
         .await?;
-    let id: i32 = row.get(0);
+    let id: i32 = row.get("id");
     let resp = json!({"status":"ok", "id":id, "name": location_form.name,"pincode":pincode });
     Ok(HttpResponse::Ok().json(resp))
     // notify display add client to queue
