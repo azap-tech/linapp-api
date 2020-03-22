@@ -58,13 +58,15 @@ def create_doctor(name, phone, location_code):
 
 def login(phone, pincode):
     res = requests.post(f"{api}/login",
-                        json={"phone": phone, "secret": pincode}).json()
+                        json={"phone": phone, "secret": pincode})
+    print(res.text)
     return res["id"]
 
 
 def location_login(token):
     res = requests.post(f"{api}/login",
-                        json={"secret": token}).json()
+                        json={"secret": token})
+    print(res.text)
     return res["id"]
 
 
