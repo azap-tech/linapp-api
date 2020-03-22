@@ -23,7 +23,7 @@ pub async fn create_user(db_conn: &Client, password: &str) -> Result<i32, AppErr
     Ok(id)
 }
 
-#[get("/api/v1/me")]
+#[get("/api/v2/me")]
 async fn get_me(session: Session) -> Result<HttpResponse, AppError> {
     let sess: Option<i32> = session.get("azap")?;
     if sess.is_some() {
@@ -51,16 +51,16 @@ async fn login(
 
     let db_conn = db_pool.get().await?;
     let row = db_conn
-        .query_one("SELECT (id,hsecret) from users where id=$1", &[&id])
+        .query_one("SELECT id,hsecret from users where id=$1", &[&id])
         .await?;
     let id: i32 = row.get("id");
     let hsecret: String = row.get("hsecret");
     if scrypt_check(&user.secret, &hsecret).is_ok() {
         session.set("azap", id)?;
         session.renew();
-        return Ok(HttpResponse::Ok().json(json!({"status": "sucess","user":{"id": id} })));
+        return Ok(HttpResponse::Ok().json(json!({"status": "sucess","id": id})));
     }
-    return Ok(HttpResponse::Ok().json(json!({"error": "erro"})));
+    Ok(HttpResponse::Ok().json(json!({"error": "error"})))
 }
 
 #[post("/api/v2/logout")]

@@ -51,7 +51,7 @@ pub async fn create_doctor(
     let user_id = create_user(&db_conn, &pincode).await?;
     let doctor_row = db_conn
         .query_one(
-            "INSERT into doctors (id, name, location_id, avatar, phone, is_manager) values ($1, $2, $3, $4, $5, $6)  RETURNING *",
+            "INSERT into doctors (id, name, location_id, phone) values ($1, $2, $3, $4)  RETURNING *",
             &[
                 &user_id,
                 &doctor_form.name,

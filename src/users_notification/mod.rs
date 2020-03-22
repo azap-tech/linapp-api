@@ -39,6 +39,7 @@ A tout de suite"#,
     notify_client(to, &msg).await
 }
 
+//#[cfg!(feature(print-sms))]
 pub async fn notify_your_turn(to: &str, name: &str) -> Result<Response, Error> {
     notify_client(
         to,

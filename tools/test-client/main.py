@@ -44,7 +44,8 @@ def get_location():
 
 def take_ticket(name, phone):
     res = requests.post(
-        f"{api}/ticket/", json={"name": name, "phone": phone}).json()
+        f"{api}/ticket", json={"name": name, "phone": phone})
+    print(res.text)
     return res["id"]
 
 
@@ -53,12 +54,13 @@ def get_tickets():
 
 
 def create_doctor(name, phone, location_code):
-    phone = input("phone-number:")
-    payload = {"name": name, "phone": phone, "location_code": location_code}
-    res = requests.post(f"{api}/doctor/", json=payload).json()
-    pincode = input("pincode:")
-    login(phone, pincode)
-    return res["id"]
+    #phone = input("phone-number:")
+    res = requests.post(f"{api}/doctor", json={"name": name,
+                                               "phone": phone, "locationId": location_code})
+    print(res.text)
+    #pincode = input("pincode:")
+    #login(phone, pincode)
+    return res
 
 
 def login(id, secret):

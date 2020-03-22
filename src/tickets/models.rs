@@ -7,7 +7,7 @@ use tokio_postgres::row::Row;
 #[serde(rename_all(serialize = "camelCase"))]
 pub struct Ticket {
     pub id: i32,
-    pub store_id: i32,
+    pub location_id: i32,
     pub name: String,
     pub phone: Option<String>,
     pub docotor_id: Option<i32>,
@@ -20,7 +20,7 @@ pub struct Ticket {
 impl From<&Row> for Ticket {
     fn from(row: &Row) -> Self {
         let id = row.get("id");
-        let store_id = row.get("store_id");
+        let location_id = row.get("location_id");
         let docotor_id = row.get("docotor_id");
         let name = row.get("name");
         let phone = row.get("phone");
@@ -30,7 +30,7 @@ impl From<&Row> for Ticket {
         let canceled_time = row.get("canceled_time");
         Ticket {
             id,
-            store_id,
+            location_id,
             docotor_id,
             name,
             phone,

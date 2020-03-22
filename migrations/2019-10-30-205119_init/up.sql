@@ -22,7 +22,7 @@ CREATE TABLE doctors (
 CREATE TABLE tickets (
     id SERIAL NOT NULL PRIMARY KEY,
     location_id INTEGER NOT NULL REFERENCES locations(id),
-    docotor_id INTEGER REFERENCES doctors(id),
+    doctor_id INTEGER REFERENCES doctors(id),
     name TEXT NOT NULL,
     phone TEXT,
     creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
