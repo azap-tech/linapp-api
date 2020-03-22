@@ -1,4 +1,6 @@
+use crate::doctor::Doctor;
 use crate::error::AppError;
+use crate::tickets::Ticket;
 use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse, Result};
 use deadpool_postgres::Client;
@@ -24,13 +26,56 @@ pub async fn create_user(db_conn: &Client, password: &str) -> Result<i32, AppErr
 }
 
 #[get("/api/v2/me")]
-async fn get_me(session: Session) -> Result<HttpResponse, AppError> {
+async fn get_me(db_pool: web::Data<Pool>, session: Session) -> Result<HttpResponse, AppError> {
     let id: Option<i32> = session.get("azap")?;
     let location: Option<i32> = session.get("azap-location")?;
     let doctor: Option<i32> = session.get("azap-doctor")?;
+
+    let db_conn = db_pool.get().await?;
+    let doctors: Vec<Doctor> = if location.is_some() {
+        db_conn
+            .query("SELECT * from doctors where location_id=$1", &[&location])
+            .await?
+            .iter()
+            .map(|row| row.into())
+            .collect()
+    } else {
+        vec![]
+    };
+
+    let tickets: Vec<Ticket> = if location.is_some() && doctor.is_some() {
+        db_conn
+            .query(
+                "SELECT * from tickets where location_id=$1 and doctor_id=$2",
+                &[&location.unwrap(), &doctor.unwrap()],
+            )
+            .await?
+            .iter()
+            .map(|row| row.into())
+            .collect()
+    } else if location.is_some() && doctor.is_none() {
+        db_conn
+            .query(
+                "SELECT * from tickets where location_id=$1",
+                &[&location.unwrap()],
+            )
+            .await?
+            .iter()
+            .map(|row| row.into())
+            .collect()
+    } else {
+        vec![]
+    };
+
     if id.is_some() {
-        Ok(HttpResponse::Ok()
-            .json(json!({ "status": "sucess", "id": id,"location":location, "doctor":doctor })))
+        Ok(HttpResponse::Ok().json(json!({
+                "status": "sucess",
+                "id": id,
+                "locationId":location,
+                "doctorId":doctor,
+                "doctors":doctors,
+                "tickets":tickets
+        })))
     } else {
         Ok(HttpResponse::Unauthorized()
             .json(json!({ "status": "error", "error":"invalid session" })))

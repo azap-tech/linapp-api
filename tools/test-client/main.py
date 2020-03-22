@@ -61,8 +61,9 @@ def create_doctor(name, phone, location_code):
 
 def login(id, secret):
     res = requests.post(f"{api}/login",
-                        json={"id": id, "secret": secret}).json()
-    return res["id"]
+                        json={"id": id, "secret": secret})
+    print(res.text)
+    return res.json()
 
 
 def get_me():

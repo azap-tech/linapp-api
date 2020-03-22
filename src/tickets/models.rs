@@ -15,6 +15,8 @@ pub struct Ticket {
     pub started_time: Option<chrono::DateTime<Local>>,
     pub done_time: Option<chrono::DateTime<Local>>,
     pub canceled_time: Option<chrono::DateTime<Local>>,
+    // pub sex : String
+    // pub patho : String
 }
 
 impl From<&Row> for Ticket {
