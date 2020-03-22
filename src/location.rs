@@ -25,7 +25,7 @@ pub fn config(cfg: &mut ServiceConfig) {
 #[get("/api/v2/location")]
 pub async fn get_locations(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
     let db_conn = db_pool.get().await?;
-    let sql = "SELECT (id,name) from locations";
+    let sql = "SELECT id,name from locations";
     let res: Vec<(i32, String)> = db_conn
         .query(sql, &[])
         .await?

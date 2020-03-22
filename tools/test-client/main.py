@@ -37,6 +37,11 @@ def create_location(name):
     return res["id"], res["pincode"]
 
 
+def get_location():
+    res = requests.get(f"{api}/location").json()
+    return res
+
+
 def take_ticket(name, phone):
     res = requests.post(
         f"{api}/ticket/", json={"name": name, "phone": phone}).json()
@@ -97,7 +102,7 @@ if __name__ == "__main__":
     login(location_id, token)
 
     me = get_me()
-    #connect_sse(me["event_token"])
+    # connect_sse(me["event_token"])
 
     p1 = take_ticket("patien-1", "0624242401")
     p2 = take_ticket("patien-2", "0624242401")
