@@ -23,6 +23,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(update_ticket_status);
     cfg.service(submit_ticket_form_no_login);
     cfg.service(get_ticket_id);
+    cfg.service(update_doctor);
 }
 
 #[get("/api/v2/ticket/{id}")]
@@ -281,4 +282,43 @@ async fn update_ticket_status(
         }
     }
     Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":ticket_id })))
+}
+
+#[derive(Deserialize)]
+pub struct DoctorForm {
+    id: i32,
+}
+#[patch("/api/v2/ticket/{idTicket}/doctor")]
+async fn update_doctor(
+    path: Path<i32>,
+    doctor_form: web::Json<DoctorForm>,
+    db_pool: web::Data<Pool>,
+    location_broadcaster: web::Data<Mutex<Broadcaster>>,
+) -> Result<HttpResponse, AppError> {
+    let idTicket = path.into_inner();
+    let doctor_form = doctor_form.into_inner();
+    let idDoctor = doctor_form.id;
+    let db_conn = db_pool.get().await?;
+
+    let row = db_conn
+        .query_one("SELECT * from tickets WHERE id=$1", &[&idTicket])
+        .await?;
+    let ticket = Ticket::from(&row);
+
+    let t1_row = db_conn
+        .query_one(
+            "UPDATE tickets SET id_doctor=$1 WHERE id=$2 returning *",
+            &[&idDoctor, &ticket.id],
+        )
+        .await?;
+    let t1 = Ticket::from(&t1_row);
+    if let Some(p1) = &t1.phone {
+        notify_your_turn(&p1, &t1.name).await?;
+    }
+    location_broadcaster.lock().unwrap().send(
+        t1.location_id,
+        &json!({"type":"updateticket", "payload":t1}).to_string(),
+    );
+
+    Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":idTicket })))
 }
