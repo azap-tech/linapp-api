@@ -64,7 +64,7 @@ async fn login(
         let res = db_conn
             .query("SELECT id from locations where id=$1", &[&id])
             .await?;
-        if res.len() > 0 {
+        if !res.is_empty() {
             let id: i32 = res[0].get("id");
             session.set("azap-location", id)?;
         }
@@ -72,14 +72,13 @@ async fn login(
         let res = db_conn
             .query("SELECT id from doctors where id=$1", &[&id])
             .await?;
-        if res.len() > 0 {
+        if !res.is_empty() {
             let id: i32 = res[0].get("id");
             session.set("azap-doctor", id)?;
         }
         session.renew();
         return Ok(HttpResponse::Ok().json(json!({"status": "sucess","id": id})));
     }
-
     Ok(HttpResponse::Ok().json(json!({"error": "error"})))
 }
 
