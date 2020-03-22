@@ -6,7 +6,7 @@ attrs==19.3.0
 backcall==0.1.0
 bcrypt==3.1.7
 binwalk==2.2.0
-bleach==3.1.0
+bleach==3.1.1
 Brlapi==0.7.0
 btrfsutil==1.1.1
 CacheControl==0.12.5
