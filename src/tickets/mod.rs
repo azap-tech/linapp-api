@@ -21,7 +21,6 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(get_tickets);
     cfg.service(submit_ticket_form);
     cfg.service(update_ticket_status);
-    cfg.service(get_existing_client_name);
 }
 
 #[get("/api/v2/ticket")]
@@ -34,20 +33,6 @@ async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError>
         .map(|row| row.into())
         .collect();
     Ok(HttpResponse::Ok().json(tickets))
-}
-
-#[get("/api/v2/ticket/client/{phone}")]
-async fn get_existing_client_name(
-    db_pool: web::Data<Pool>,
-    info: Path<String>,
-) -> Result<HttpResponse, AppError> {
-    let phone = info.into_inner();
-    let db_conn = db_pool.get().await?;
-    let phone_row = db_conn
-        .query_one("SELECT name from tickets where phone=$1 LIMIT 1", &[&phone])
-        .await?;
-    let name: String = phone_row.get("name");
-    Ok(HttpResponse::Ok().json(json!({"status":"ok", "name":name })))
 }
 
 #[derive(Deserialize)]

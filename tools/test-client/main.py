@@ -55,23 +55,13 @@ def get_tickets():
 def create_doctor(name, phone, location_code):
     #phone = input("phone-number:")
     res = requests.post(f"{api}/doctor", json={"name": name,
-                                               "phone": phone, "locationId": location_code})
-    print(res.text)
-    #pincode = input("pincode:")
-    #login(phone, pincode)
+                                               "phone": phone, "locationId": location_code}).json()
     return res
 
 
 def login(id, secret):
     res = requests.post(f"{api}/login",
                         json={"id": id, "secret": secret}).json()
-    return res["id"]
-
-
-def location_login(token):
-    res = requests.post(f"{api}/login",
-                        json={"secret": token})
-    print(res.text)
     return res["id"]
 
 
@@ -92,8 +82,8 @@ def set_doctor(patient_id, doctor_id):
 
 
 def doctor_next(patient_id):
-    payload = {"patient_id": patient_id}
-    res = requests.post(f"{api}/doctor/next", json=payload).json()
+    res = requests.post(f"{api}/doctor/next",
+                        json={"patientId": patient_id}).json()
     return res["status"] == 200
 
 
@@ -111,7 +101,8 @@ if __name__ == "__main__":
     print(get_tickets())
     logout()
 
-    doctor_id, pin = create_doctor("test-docotor", "0642424242", location_id)
+    doctor = create_doctor("test-doctor", "0642424242", location_id)
+    doctor_id, pin = doctor["id"], doctor["pincode"]
     set_doctor(p1, doctor_id)
     token = login(doctor_id, pin)
     set_doctor(p2, doctor_id)
