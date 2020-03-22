@@ -21,7 +21,7 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.service(get_tickets);
     cfg.service(submit_ticket_form);
     cfg.service(update_ticket_status);
-}
+    cfg.service(submit_ticket_form_no_login);
 
 #[get("/api/v2/ticket")]
 async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
@@ -116,6 +116,71 @@ async fn submit_ticket_form(
         .send_new_ticket(location_id, &ticket);
     Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":ticket.id })))
 }
+
+#[post("/api/v2/ticket/new")]
+async fn submit_ticket_form_no_login(
+    //req: HttpRequest,
+    ticket_form: web::Json<TicketForm>,
+    db_pool: web::Data<Pool>,
+    location_broadcaster: web::Data<Mutex<Broadcaster>>,
+) -> Result<HttpResponse, AppError> {
+    let ticket_form = ticket_form.into_inner();
+    let db_conn = db_pool.get().await?;
+    if ticket_form.location_id.is_none() {
+        return Err(AppError::NotFound);
+    } else {
+        ticket_form.location_id.unwrap()
+    };
+
+    let doctor_id = ticket_form.doctor_id;
+    let name = ticket_form.name;
+    let phone = ticket_form.phone;
+    let creation_time = Local::now();
+    let sex = ticket_form.sex;
+    let pathology = ticket_form.pathology;
+
+    // if doctor has no tickets
+    let docotor_tickets_rows = db_conn.query("Select * from tickets WHERE location_id=$2 and doctor_id=$1 and done_time is NULL and canceled_time is NULL", &[&doctor_id, &location_id]).await?;
+    let started_time = if docotor_tickets_rows.is_empty() {
+        Some(creation_time)
+    } else {
+        None
+    };
+
+    let query = r#"INSERT INTO tickets
+        (location_id, doctor_id, creation_time, started_time, name, phone, sex, pathology)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        RETURNING *"#;
+    let param: &[&(dyn ToSql + Sync)] = &[
+        &location_id,
+        &doctor_id,
+        &creation_time,
+        &started_time,
+        &name,
+        &phone,
+        &sex,
+        &pathology,
+    ];
+    let ticket_row = db_conn.query_one(query, param).await?;
+    let ticket: Ticket = Ticket::from(&ticket_row);
+
+    if notify_creation(&phone, &ticket.name, ticket.id)
+        .await
+        .is_err()
+    {
+        return Ok(
+            HttpResponse::BadRequest().json(json!({"status":"error","error":"could not send sms"}))
+        );
+    }
+
+    // fixme define message
+    location_broadcaster
+        .lock()
+        .unwrap()
+        .send_new_ticket(location_id, &ticket);
+    Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":ticket.id })))
+}
+
 #[derive(Deserialize, Debug, PartialEq)]
 enum TicketStatus {
     DONE,
