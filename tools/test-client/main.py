@@ -42,7 +42,7 @@ def get_location():
     return res
 
 
-def take_ticket(name, phone, sex, pathology, age, doctorId=None, locationId=None):
+def take_ticket(name, phone, sex="m", pathology="", age=0, doctorId=None, locationId=None):
     res = requests.post(
         f"{api}/ticket", json={"name": name, "phone": phone, "doctorId": doctorId, "pathology": pathology, "sex": sex, "age": age, "locationId": locationId}).json()
     return res
@@ -62,7 +62,6 @@ def create_doctor(name, phone, location_code):
 def login(id, secret):
     res = requests.post(f"{api}/login",
                         json={"id": id, "secret": secret})
-    print(res.text)
     return res.json()
 
 
@@ -78,7 +77,9 @@ def logout():
 
 def set_doctor(patient_id, doctor_id):
     res = requests.patch(f"{api}/ticket/{patient_id}/doctor",
-                         json={"doctor_id": doctor_id}).json()
+                         json={"id": doctor_id})
+    print(res.text)
+    res = res.json()
     return res["status"] == 200
 
 
@@ -99,19 +100,19 @@ if __name__ == "__main__":
     p1 = take_ticket("patien-1", "0624242401")
     p2 = take_ticket("patien-2", "0624242401")
     p3 = take_ticket("patien-3", "0624242401")
-    print(get_tickets())
+    # print(get_tickets())
     logout()
 
     doctor = create_doctor("test-doctor", "0642424242", location_id)
     doctor_id, pin = doctor["id"], doctor["pincode"]
-    set_doctor(p1, doctor_id)
+    set_doctor(p1["id"], doctor_id)
     token = login(doctor_id, pin)
-    set_doctor(p2, doctor_id)
+    set_doctor(p2["id"], doctor_id)
     p4 = take_ticket("patien-4", "0624242401")
     p5 = take_ticket("patien-5", "0624242402")
     p6 = take_ticket("patien-6", "0624242403")
-    print(get_tickets())
+    # print(get_tickets())
 
     doctor_next(p2)
     doctor_next(p4)
-    print(get_tickets())
+    # print(get_tickets())

@@ -288,27 +288,22 @@ async fn update_ticket_status(
 pub struct DoctorForm {
     id: i32,
 }
-#[patch("/api/v2/ticket/{idTicket}/doctor")]
+#[patch("/api/v2/ticket/{id_ticket}/doctor")]
 async fn update_doctor(
     path: Path<i32>,
     doctor_form: web::Json<DoctorForm>,
     db_pool: web::Data<Pool>,
     location_broadcaster: web::Data<Mutex<Broadcaster>>,
 ) -> Result<HttpResponse, AppError> {
-    let idTicket = path.into_inner();
+    let id_ticket = path.into_inner();
     let doctor_form = doctor_form.into_inner();
-    let idDoctor = doctor_form.id;
+    let id_doctor = doctor_form.id;
     let db_conn = db_pool.get().await?;
-
-    let row = db_conn
-        .query_one("SELECT * from tickets WHERE id=$1", &[&idTicket])
-        .await?;
-    let ticket = Ticket::from(&row);
 
     let t1_row = db_conn
         .query_one(
-            "UPDATE tickets SET id_doctor=$1 WHERE id=$2 returning *",
-            &[&idDoctor, &ticket.id],
+            "UPDATE tickets SET doctor_id=$1 WHERE id=$2 returning *",
+            &[&id_doctor, &id_ticket],
         )
         .await?;
     let t1 = Ticket::from(&t1_row);
@@ -320,5 +315,5 @@ async fn update_doctor(
         &json!({"type":"updateticket", "payload":t1}).to_string(),
     );
 
-    Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":idTicket })))
+    Ok(HttpResponse::Ok().json(json!({"status":"ok", "id":id_ticket })))
 }
