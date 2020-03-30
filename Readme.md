@@ -18,7 +18,7 @@ cargo install diesel_cli --no-default-features --features "postgres"
 ## Build
 
 ```bash
-# fast build to check for erros
+# fast build to check for errors
 cargo check
 # build
 cargo build
@@ -36,30 +36,15 @@ Run the `./tools/run-env.sh` script to start postgres docker and run migration.
 # Test
 
 ```bash
+cd tools/test-client
 # setup python virtual env
 python -m venv env
 source env/bin/activate
-pip install -r requirement.txt
+pip install -r requirements.txt
 # run test script
-python tools/test.py
+python main.py
+# You can also load main.py and call api functions directly
+python
+>>> from main import *
+>>> create_doctor("name", "phone", 0)
 ```
-
-# Deploy
-
-## Setup heroku
-
-```bash
-heroku login
-git remote add dev https://git.heroku.com/azap-dev.git
-git remote add heroku https://git.heroku.com/azap-prod.git
-```
-
-```
-
-## Deploy to heroku
-
-`git push heroku master` Or `git push dev master`
-```
-
-Load scripts
-python3 load_barber.py stores/barber_avenue.json 

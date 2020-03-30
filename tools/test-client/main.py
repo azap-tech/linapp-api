@@ -53,7 +53,7 @@ def get_tickets():
 
 
 def create_doctor(name, phone, location_code):
-    #phone = input("phone-number:")
+    # phone = input("phone-number:")
     res = requests.post(f"{api}/doctor", json={"name": name,
                                                "phone": phone, "locationId": location_code}).json()
     return res
@@ -66,8 +66,10 @@ def login(id, secret):
 
 
 def get_me():
-    res = requests.get(f"{api}/me").json()
-    return res
+    res = requests.get(f"{api}/me")
+    print(res.cookies.get_dict())
+    print(res.headers)
+    return res.json()
 
 
 def logout():
@@ -92,9 +94,10 @@ def doctor_next(patient_id):
 if __name__ == "__main__":
     # create store
     location_id, token = create_location("test-location")
-    login(location_id, token)
+    print(f' {location_id}:{token} {login(location_id, token)}')
 
     me = get_me()
+    print(me)
     # connect_sse(me["event_token"])
 
     p1 = take_ticket("patien-1", "0624242401")

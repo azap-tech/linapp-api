@@ -40,6 +40,7 @@ async fn get_ticket_id(
     Ok(HttpResponse::Ok().json(ticket))
 }
 
+// FIXME: remove me
 #[get("/api/v2/ticket")]
 async fn get_tickets(db_pool: web::Data<Pool>) -> Result<HttpResponse, AppError> {
     let db_conn = db_pool.get().await?;

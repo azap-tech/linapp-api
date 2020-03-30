@@ -124,7 +124,8 @@ async fn login(
         session.renew();
         return Ok(HttpResponse::Ok().json(json!({"status": "sucess","id": id})));
     }
-    Ok(HttpResponse::Ok().json(json!({"error": "error"})))
+    session.purge();
+    Ok(HttpResponse::Unauthorized().json(json!({"error": "error"})))
 }
 
 #[post("/api/v2/logout")]
