@@ -91,7 +91,7 @@ def doctor_next(patient_id):
     return res["status"] == 200
 
 
-if __name__ == "__main__":
+def end_to_end():
     # create store
     location_id, token = create_location("test-location")
     print(f' {location_id}:{token} {login(location_id, token)}')
@@ -119,3 +119,10 @@ if __name__ == "__main__":
     doctor_next(p2)
     doctor_next(p4)
     # print(get_tickets())
+
+
+if __name__ == "__main__":
+    try:
+        end_to_end()
+    except:
+        print(sys.exc_info(), file=sys.stderr)
