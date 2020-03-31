@@ -1,0 +1,17 @@
+version: "3.4"
+services:
+  azap-api:
+    build:
+      context: .
+      target: builder
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/azap-api/
+    command: systemfd --no-pid -s http::0.0.0.0:8080 -- cargo watch --poll -x 'run --release'
+  azap-postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_PASSWORD=azap123"

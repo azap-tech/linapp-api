@@ -1,5 +1,7 @@
 # Azap comunity api
 
+This documentation is not up to date but give rougth overview of the api
+
 ## Locations
 
 ### POST /location
